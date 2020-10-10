@@ -19,4 +19,4 @@ Express, Socket.io, Axios
 Este projeto não é afiliado, associado, autorizado, endossado por, ou de qualquer forma oficialmente conectado com o WhatsApp ou qualquer uma de suas subsidiárias ou suas afiliadas. O site oficial do WhatsApp pode ser encontrado em https://whatsapp.com. "WhatsApp" bem como nomes, marcas, emblemas e imagens relacionadas são marcas registradas de seus respectivos proprietários.
 
 ## Créditos
-Esse trabalho tem como base o projeto do @pedroslopez
+Esse trabalho tem como base o projeto do [@pedroslopez](https://github.com/pedroslopez)
