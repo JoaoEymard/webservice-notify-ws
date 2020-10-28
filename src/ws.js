@@ -1,46 +1,45 @@
-const axios = require('axios');
-const subscribe = require('./subscribe');
+const { Client } = require("whatsapp-web.js");
 
-const { Client } = require('whatsapp-web.js');
-const client = new Client();
+const subscribe = require("./subscribe");
+const saveSessionWs = require("./helpers/saveSessionWs");
+const generateQrCode = require("./helpers/generateQrCode");
+const configWs = require("./model/configWs");
 
-client.on('qr', async (qr) => {
-	// Generate and scan this code with your phone
-	console.log('QR RECEIVED', qr);
+// Load the session data if it has been previously saved
 
-	const { data } = await axios.post(`https://qr-generator.qrcode.studio/qr/custom`, {
-		data: qr,
-		size: 250,
-		config: {
-			body: 'circular', eye: 'frame13', eyeBall: 'ball15'
-		},
-		download: false,
-		file: 'svg'
-	});
+const client = new Client({ session: configWs.session });
 
-	subscribe.emit('socket-qr', data);
+client.on("qr", async (qr) => {
+  console.log("gerando qr");
+  // Publishing new qrcode
+  subscribe.emit("socketSendQr", await generateQrCode(qr));
 });
 
-client.on('ready', () => {
-	console.log('Client is ready!');
-	
-	client.sendMessage('558896396886@c.us', 'teste auto!')
+client.on("ready", () => {
+  subscribe.emit("socketSendReady", true);
 });
 
-client.on('message', async msg => {
-	console.log(msg, await client.getContactById(msg.id.id));
-	
-	if (msg.body == '!ping') {
-		msg.reply('pong');
-	}
+client.on("message", async (msg) => {
+  console.log(msg, await client.getContactById(msg.id.id));
+
+  if (msg.body == "!ping") {
+    msg.reply("pong");
+  }
 });
 
-client.on('message_create', (msg) => {
-	console.log(msg);
-	// Fired on all message creations, including your own
-	if (msg.fromMe) {
-		// do stuff here
-	}
+client.on("message_create", (msg) => {
+  console.log(msg);
+  // Fired on all message creations, including your own
+  if (msg.fromMe) {
+    // do stuff here
+  }
+});
+
+client.on("authenticated", (session) => {
+  console.log("autenticado");
+
+  configWs.isAuthenticated = true;
+  saveSessionWs(session);
 });
 
 client.initialize();
