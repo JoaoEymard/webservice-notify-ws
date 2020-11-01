@@ -8,10 +8,14 @@ module.exports = (http) => {
   const io = Socket(http);
 
   io.on("connection", (socket) => {
-    console.log("a user connected:", socket.id);
+    console.log("user connected:", socket.id);
     socketId = socket.id;
 
     socket.emit("isAuthenticated", configWs.isAuthenticated);
+
+    socket.on("getContact", (fnCallBack) => {
+      subscribe.emit("wsGetContact", fnCallBack);
+    });
 
     socket.on("disconnect", () => {
       socketId = "";
@@ -24,5 +28,8 @@ module.exports = (http) => {
   });
   subscribe.on("socketSendReady", (content) => {
     io.to(socketId).emit("qrCodeReady", content);
+  });
+  subscribe.on("socketSendMessage", (content) => {
+    io.to(socketId).emit("newMessage", content);
   });
 };

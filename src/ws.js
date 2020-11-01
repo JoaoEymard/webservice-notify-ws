@@ -19,27 +19,26 @@ client.on("ready", () => {
   subscribe.emit("socketSendReady", true);
 });
 
-client.on("message", async (msg) => {
-  console.log(msg, await client.getContactById(msg.id.id));
-
-  if (msg.body == "!ping") {
-    msg.reply("pong");
-  }
-});
-
-client.on("message_create", (msg) => {
-  console.log(msg);
-  // Fired on all message creations, including your own
-  if (msg.fromMe) {
-    // do stuff here
-  }
-});
-
 client.on("authenticated", (session) => {
-  console.log("autenticado");
+  console.log(">>> Authenticated account");
 
   configWs.isAuthenticated = true;
   saveSessionWs(session);
+});
+
+client.on("message", async (msg) => {
+  subscribe.emit("socketSendMessage", {
+    ...msg,
+    user: await msg.getContact(),
+  });
+});
+
+subscribe.on("wsGetContact", async (fnCallBack) => {
+  fnCallBack(await client.getContacts());
+});
+subscribe.on("wsSendMessage", async ({ chatId, content }, fnCallBack) => {
+  const message = await client.sendMessage(chatId, content);
+  fnCallBack(message);
 });
 
 client.initialize();

@@ -31,16 +31,17 @@
 			</div>
 		</nav>
 		
+		
 		<section class="container-fluid pt-3">
 
 			<div class="accordion" id="accordionExample">
-				<div class="card" v-for="(message, ind) in messages">
+				<div class="card" v-for="(contact, ind) in contacts">
 					<div class="card-header" id="headingOne" v-bind:href="'#collapseMessage'+ ind" data-toggle="collapse">
 						<div class="row">
 	
-							<div class="col-7">{{ message.user.name || message.user.pushname }}</div>
+							<div class="col-7">{{ contact.name || contact.pushname }}</div>
 							<div class="col-5 text-right">
-								<small>{{ new Date(parseInt(message.timestamp +'000')).toLocaleString('pt-br') }}</small>
+								<small>{{ contact.number }}</small>
 							</div>
 	
 						</div>
@@ -48,12 +49,12 @@
 					
 					<div v-bind:id="'collapseMessage'+ ind" class="collapse">
 						<div class="card-body">
-							<pre>{{ message }}</pre>
+							<pre>{{ contact }}</pre>
 						</div>
 					</div>
 				</div>
 			</div>
-			
+
 		</section>
 	</div>
 
@@ -75,48 +76,21 @@
 		const v = new Vue({
 			el: '#root'
 			, data: {
-				messages: []
+				contacts: []
 			}
-			, methods: {
-				addMessage: function (msg) {
-					this.messages.push(msg)
-				}
-			}
+			, methods: {}
 		})
 		
 		socket.on('connected', () => {
 			console.log('conectado');
 		})
 		
-		socket.on('newQrCode', async (qr) => {
-			document.querySelector('.qrcode').innerHTML = qr;
-		});
-		socket.on('qrCodeReady', async (isReady) => {
-			
-			if (isReady) {
-				document.querySelector('.qrcode').innerHTML = `
-				<svg width="200px" height="200px" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-					<path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
-				</svg>
-				`;
-			}
-			
-		});
-		socket.on('isAuthenticated', async (isReady) => {
-			
-			if (isReady) {
-				document.querySelector('.qrcode').innerHTML = `
-				<svg width="200px" height="200px" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-					<path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
-				</svg>
-				`;
-			}
-			
-		});
-		socket.on('newMessage', (msg) => {
-			v.addMessage(msg)
-		})
-		
+		window.onload = () => {
+			socket.emit('getContact', (ctt) => {
+				v.contacts = ctt;
+			})
+		}
+
 	</script>
 </body>
 </html>
