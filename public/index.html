@@ -38,7 +38,7 @@
 					<div class="card-header" id="headingOne" v-bind:href="'#collapseMessage'+ ind" data-toggle="collapse">
 						<div class="row">
 	
-							<div class="col-7">{{ message.user.name || message.user.pushname }}</div>
+							<div class="col-7">{{ message.user.name || message.user.pushname || message.user.verifiedName }}</div>
 							<div class="col-5 text-right">
 								<small>{{ new Date(parseInt(message.timestamp +'000')).toLocaleString('pt-br') }}</small>
 							</div>
