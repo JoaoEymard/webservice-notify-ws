@@ -10,12 +10,15 @@ const configWs = require("./model/configWs");
 const client = new Client({ session: configWs.session });
 
 client.on("qr", async (qr) => {
-  console.log("gerando qr");
+  console.log(">>> Generated Qrcode");
+
   // Publishing new qrcode
   subscribe.emit("socketSendQr", await generateQrCode(qr));
 });
 
 client.on("ready", () => {
+  console.log(">>> Ready");
+
   subscribe.emit("socketSendReady", true);
 });
 
@@ -26,7 +29,27 @@ client.on("authenticated", (session) => {
   saveSessionWs(session);
 });
 
+client.on("auth_failure", () => {
+  console.log(">>> Authentication Failure");
+
+  configWs.isAuthenticated = false;
+  saveSessionWs();
+});
+
+client.on("disconnected", () => {
+  console.log(">>> Disconnected");
+
+  configWs.isAuthenticated = false;
+  saveSessionWs();
+});
+
 client.on("message", async (msg) => {
+  subscribe.emit("socketSendMessage", {
+    ...msg,
+    user: await msg.getContact(),
+  });
+});
+client.on("message_ack", async (msg) => {
   subscribe.emit("socketSendMessage", {
     ...msg,
     user: await msg.getContact(),

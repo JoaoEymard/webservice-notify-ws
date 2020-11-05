@@ -19,7 +19,7 @@
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
 				<ul class="navbar-nav mr-auto">
 					<li class="nav-item active">
-						<a class="nav-link" href="/">Mensagens <span class="sr-only">(current)</span></a>
+						<a class="nav-link" href="/">Mensagens</a>
 					</li>
 					<li class="nav-item">
 						<a class="nav-link" href="/contatos.html">Contatos</a>
@@ -33,7 +33,7 @@
 		
 		<section class="container-fluid pt-3">
 
-			<div class="accordion" id="accordionExample">
+			<div class="accordion" id="accordionExample" v-if="isAuthenticated">
 				<div class="card" v-for="(message, ind) in messages">
 					<div class="card-header" id="headingOne" v-bind:href="'#collapseMessage'+ ind" data-toggle="collapse">
 						<div class="row">
@@ -55,11 +55,26 @@
 			</div>
 			
 		</section>
+
+		<section class="container text-center" v-if="!isAuthenticated || messages.length === 0">
+
+			<h1 class="display-2 mt-4" style="font-size: 2em;">
+				Seu whatsapp está <span v-bind:class="isAuthenticated ? 'text-success' : 'text-danger'">{{ isAuthenticated ? 'conectado' : 'desconectado' }}</span>!
+			</h1>
+
+			<div class="noAuthenticated" v-if="!isAuthenticated">
+				<div class="qrcode"></div>
+			</div>
+
+			<div class="authenticated" v-if="isAuthenticated">
+				<svg width="200px" height="200px" viewBox="0 0 16 16" class="bi bi-check text-success" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+
+		</section>
 	</div>
 
-	<div class="container text-center">
-		<div class="qrcode"></div>
-	</div>
 	
 	
 	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
@@ -76,42 +91,30 @@
 			el: '#root'
 			, data: {
 				messages: []
+				, isAuthenticated: false
 			}
 			, methods: {
 				addMessage: function (msg) {
-					this.messages.push(msg)
+					this.messages = this.messages.slice(0, 99);
+					this.messages.unshift(msg);
 				}
 			}
 		})
 		
-		socket.on('connected', () => {
+		socket.on('connect', () => {
 			console.log('conectado');
-		})
+		});
 		
 		socket.on('newQrCode', async (qr) => {
 			document.querySelector('.qrcode').innerHTML = qr;
 		});
 		socket.on('qrCodeReady', async (isReady) => {
-			
-			if (isReady) {
-				document.querySelector('.qrcode').innerHTML = `
-				<svg width="200px" height="200px" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-					<path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
-				</svg>
-				`;
-			}
-			
+			console.log('qrCodeReady', isReady);
+			v.isAuthenticated = isReady;
 		});
-		socket.on('isAuthenticated', async (isReady) => {
-			
-			if (isReady) {
-				document.querySelector('.qrcode').innerHTML = `
-				<svg width="200px" height="200px" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-					<path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
-				</svg>
-				`;
-			}
-			
+		socket.on('isAuthenticated', async (isAuthenticated) => {
+			console.log('isAuthenticated', isAuthenticated);
+			v.isAuthenticated = isAuthenticated;
 		});
 		socket.on('newMessage', (msg) => {
 			v.addMessage(msg)

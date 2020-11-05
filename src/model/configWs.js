@@ -8,6 +8,12 @@ const configWs = {
 
 if (fs.existsSync(configWs.pathFileSession)) {
   configWs.session = require(configWs.pathFileSession);
+
+  if (!configWs.session.WAToken1 || !configWs.session.WAToken2) {
+    delete configWs.session;
+
+    configWs.isAuthenticated = false;
+  }
 }
 
 module.exports = configWs;
