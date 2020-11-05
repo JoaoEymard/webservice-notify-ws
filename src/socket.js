@@ -26,8 +26,8 @@ module.exports = (http) => {
   subscribe.on("socketSendQr", (content) => {
     io.to(socketId).emit("newQrCode", content);
   });
-  subscribe.on("socketSendReady", (content) => {
-    io.to(socketId).emit("qrCodeReady", content);
+  subscribe.on("socketSyncEvent", (content) => {
+    io.to(socketId).emit("socketSyncEvent", content);
   });
   subscribe.on("socketSendMessage", (content) => {
     io.to(socketId).emit("newMessage", content);

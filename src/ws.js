@@ -19,28 +19,47 @@ client.on("qr", async (qr) => {
 client.on("ready", () => {
   console.log(">>> Ready");
 
-  subscribe.emit("socketSendReady", true);
+  configWs.isAuthenticated = true;
+  subscribe.emit("socketSyncEvent", {
+    type: "ready",
+    isAuthenticated: true,
+  });
 });
 
 client.on("authenticated", (session) => {
   console.log(">>> Authenticated account");
 
-  configWs.isAuthenticated = true;
   saveSessionWs(session);
+
+  configWs.isAuthenticated = true;
+  subscribe.emit("socketSyncEvent", {
+    type: "authenticated",
+    isAuthenticated: true,
+  });
 });
 
 client.on("auth_failure", () => {
   console.log(">>> Authentication Failure");
 
-  configWs.isAuthenticated = false;
   saveSessionWs();
+
+  configWs.isAuthenticated = false;
+  subscribe.emit("socketSyncEvent", {
+    type: "auth_failure",
+    isAuthenticated: false,
+  });
 });
 
 client.on("disconnected", () => {
   console.log(">>> Disconnected");
 
-  configWs.isAuthenticated = false;
   saveSessionWs();
+
+  configWs.isAuthenticated = false;
+  subscribe.emit("socketSyncEvent", {
+    type: "disconnected",
+    isAuthenticated: false,
+  });
 });
 
 client.on("message", async (msg) => {
@@ -58,6 +77,9 @@ client.on("message_ack", async (msg) => {
 
 subscribe.on("wsGetContact", async (fnCallBack) => {
   fnCallBack(await client.getContacts());
+});
+subscribe.on("wsGetChats", async (fnCallBack) => {
+  fnCallBack(await client.getChats());
 });
 subscribe.on("wsSendMessage", async ({ chatId, content }, fnCallBack) => {
   const message = await client.sendMessage(chatId, content);

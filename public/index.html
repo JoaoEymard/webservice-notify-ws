@@ -83,6 +83,7 @@
 	
 	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
 	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 	
 	<script>
 		const socket = io();
@@ -108,17 +109,24 @@
 		socket.on('newQrCode', async (qr) => {
 			document.querySelector('.qrcode').innerHTML = qr;
 		});
-		socket.on('qrCodeReady', async (isReady) => {
-			console.log('qrCodeReady', isReady);
-			v.isAuthenticated = isReady;
-		});
-		socket.on('isAuthenticated', async (isAuthenticated) => {
-			console.log('isAuthenticated', isAuthenticated);
+		socket.on('socketSyncEvent', async ({type, isAuthenticated}) => {
+			console.log(type, isAuthenticated);
 			v.isAuthenticated = isAuthenticated;
 		});
 		socket.on('newMessage', (msg) => {
 			v.addMessage(msg)
-		})
+		});
+
+		window.onload = async () => {
+			try {
+
+				const { data:result } = await axios.get('/api/isauthenticated');
+				v.isAuthenticated = true;
+				
+			} catch (error) {
+				v.isAuthenticated = false;
+			}
+		}
 		
 	</script>
 </body>
