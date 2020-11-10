@@ -7,7 +7,7 @@ const configWs = require("./model/configWs");
 
 // Load the session data if it has been previously saved
 
-const client = new Client({ session: configWs.session });
+const client = new Client({ session: configWs.session, puppeteer: { args: ['--no-sandbox'] } });
 
 client.on("qr", async (qr) => {
   console.log(">>> Generated Qrcode");
