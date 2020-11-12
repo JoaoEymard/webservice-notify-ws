@@ -82,8 +82,12 @@ subscribe.on("wsGetChats", async (fnCallBack) => {
   fnCallBack(await client.getChats());
 });
 subscribe.on("wsSendMessage", async ({ chatId, content }, fnCallBack) => {
-  const message = await client.sendMessage(chatId, content);
-  fnCallBack(message);
+  try {
+    const message = await client.sendMessage(chatId, content);
+    fnCallBack(message);
+  } catch (error) {
+    fnCallBack(null, error);
+  }
 });
 
 client.initialize();
