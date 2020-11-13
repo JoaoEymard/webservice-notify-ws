@@ -11,5 +11,6 @@ services:
       - ./:/usr/src/project/
       - /usr/src/project/node_modules
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:8000:3000"
     command: npm start
+    restart: always
