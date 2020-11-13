@@ -60,6 +60,8 @@ client.on("disconnected", () => {
     type: "disconnected",
     isAuthenticated: false,
   });
+  
+  client.initialize();
 });
 
 client.on("message", async (msg) => {
