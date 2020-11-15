@@ -13,11 +13,9 @@ module.exports = (http) => {
 
     socket.emit("isAuthenticated", configWs.isAuthenticated);
 
-    socket.on("getContact", (fnCallBack) => {
-      subscribe.emit("wsGetContact", fnCallBack);
-    });
-
-    subscribe.emit("wsInit");
+    if (!configWs.isAuthenticated) {
+      subscribe.emit("wsInit");
+    }
 
     socket.on("disconnect", () => {
       socketId = "";
@@ -30,8 +28,5 @@ module.exports = (http) => {
   });
   subscribe.on("socketSyncEvent", (content) => {
     io.to(socketId).emit("socketSyncEvent", content);
-  });
-  subscribe.on("socketSendMessage", (content) => {
-    io.to(socketId).emit("newMessage", content);
   });
 };
