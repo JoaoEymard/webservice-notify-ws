@@ -75,7 +75,7 @@ client.on("disconnected", () => {
     isAuthenticated: false,
   });
 
-  client.initialize();
+  subscribe.emit("wsInit");
 });
 
 // client.on("message", async (msg) => {
