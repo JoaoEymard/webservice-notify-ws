@@ -90,4 +90,8 @@ subscribe.on("wsSendMessage", async ({ chatId, content }, fnCallBack) => {
   }
 });
 
-client.initialize();
+subscribe.on("wsInit", async () => {
+  client.initialize();
+
+  configWs.qtCodeGenerated = 0;
+});

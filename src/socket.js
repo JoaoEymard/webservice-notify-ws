@@ -17,6 +17,8 @@ module.exports = (http) => {
       subscribe.emit("wsGetContact", fnCallBack);
     });
 
+    subscribe.emit("wsInit");
+
     socket.on("disconnect", () => {
       socketId = "";
       console.log("user disconnected", socket.id);
