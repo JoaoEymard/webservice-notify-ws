@@ -8,7 +8,7 @@ const configWs = require("./model/configWs");
 
 // Load the session data if it has been previously saved
 
-const client = new Client({
+let client = new Client({
   session: configWs.session,
   puppeteer: { args: ["--no-sandbox"] },
 });
@@ -21,7 +21,7 @@ client.on("qr", async (qr) => {
 
   if (++configWs.qtCodeGenerated >= 5) {
     try {
-      client.destroy();
+      if (client.info) client.destroy();
     } catch (error) {
       console.error(error);
     }
@@ -30,12 +30,6 @@ client.on("qr", async (qr) => {
 
 client.on("ready", () => {
   console.log(">>> Ready");
-
-  configWs.isAuthenticated = true;
-  subscribe.emit("socketSyncEvent", {
-    type: "ready",
-    isAuthenticated: true,
-  });
 });
 
 client.on("authenticated", (session) => {
@@ -66,6 +60,7 @@ client.on("auth_failure", () => {
 
 client.on("disconnected", () => {
   console.log(">>> Disconnected");
+  client.logout();
 
   saveSessionWs();
 
@@ -105,8 +100,27 @@ subscribe.on("wsSendMessage", async ({ chatId, content }, fnCallBack) => {
     fnCallBack(null, error);
   }
 });
+subscribe.on("wsLogout", async (fnCallBack) => {
+  try {
+    client.logout();
+
+    saveSessionWs();
+
+    configWs.isAuthenticated = false;
+    subscribe.emit("socketSyncEvent", {
+      type: "disconnected",
+      isAuthenticated: false,
+    });
+
+    subscribe.emit("wsInit");
+    fnCallBack();
+  } catch (error) {
+    fnCallBack(null, error);
+  }
+});
 
 subscribe.on("wsInit", async () => {
+  console.log(">>> Started");
   if (client.info) client.destroy();
 
   client.initialize();
