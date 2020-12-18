@@ -1,4 +1,5 @@
 const { Client } = require("whatsapp-web.js");
+const crypto = require("crypto");
 
 const subscribe = require("./subscribe");
 const saveSessionWs = require("./helpers/saveSessionWs");
@@ -7,13 +8,24 @@ const configWs = require("./model/configWs");
 
 // Load the session data if it has been previously saved
 
-const client = new Client({ session: configWs.session });
+const client = new Client({
+  session: configWs.session,
+  puppeteer: { args: ["--no-sandbox"] },
+});
 
 client.on("qr", async (qr) => {
-  console.log(">>> Generated Qrcode");
+  console.log(">>> Generated Qrcode: " + configWs.qtCodeGenerated);
 
   // Publishing new qrcode
   subscribe.emit("socketSendQr", await generateQrCode(qr));
+
+  if (++configWs.qtCodeGenerated >= 5) {
+    try {
+      client.destroy();
+    } catch (error) {
+      console.error(error);
+    }
+  }
 });
 
 client.on("ready", () => {
@@ -28,13 +40,15 @@ client.on("ready", () => {
 
 client.on("authenticated", (session) => {
   console.log(">>> Authenticated account");
+  const token = crypto.randomBytes(64).toString("hex");
 
-  saveSessionWs(session);
+  saveSessionWs({ ...session, serverToken: token });
 
   configWs.isAuthenticated = true;
   subscribe.emit("socketSyncEvent", {
     type: "authenticated",
     isAuthenticated: true,
+    token,
   });
 });
 
@@ -60,20 +74,22 @@ client.on("disconnected", () => {
     type: "disconnected",
     isAuthenticated: false,
   });
+
+  subscribe.emit("wsInit");
 });
 
-client.on("message", async (msg) => {
-  subscribe.emit("socketSendMessage", {
-    ...msg,
-    user: await msg.getContact(),
-  });
-});
-client.on("message_ack", async (msg) => {
-  subscribe.emit("socketSendMessage", {
-    ...msg,
-    user: await msg.getContact(),
-  });
-});
+// client.on("message", async (msg) => {
+//   subscribe.emit("socketSendMessage", {
+//     ...msg,
+//     user: await msg.getContact(),
+//   });
+// });
+// client.on("message_ack", async (msg) => {
+//   subscribe.emit("socketSendMessage", {
+//     ...msg,
+//     user: await msg.getContact(),
+//   });
+// });
 
 subscribe.on("wsGetContact", async (fnCallBack) => {
   fnCallBack(await client.getContacts());
@@ -90,4 +106,10 @@ subscribe.on("wsSendMessage", async ({ chatId, content }, fnCallBack) => {
   }
 });
 
-client.initialize();
+subscribe.on("wsInit", async () => {
+  if (client.info) client.destroy();
+
+  client.initialize();
+
+  configWs.qtCodeGenerated = 0;
+});

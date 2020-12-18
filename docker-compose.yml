@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  back:
+    hostname: webservice-notify-ws
+    container_name: webservice-notify-ws
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/usr/src/project/
+      - /usr/src/project/node_modules
+    ports:
+      - "127.0.0.1:8000:3000"
+    command: npm start
+    restart: always
