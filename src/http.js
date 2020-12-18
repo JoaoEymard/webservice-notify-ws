@@ -6,6 +6,14 @@ const subscribe = require("./subscribe");
 
 // routes.use("/", debugRequest);
 
+routes.get("/isauthenticated", (req, res, next) => {
+  if (configWs.isAuthenticated) {
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(401);
+  }
+});
+
 routes.use("/", (req, res, next) => {
   if (req.headers.authorization !== "Bearer " + configWs.session.serverToken) {
     res.status(401).json({ message: "unauthorized" });
@@ -40,6 +48,16 @@ routes.get("/contacts", (req, res, next) => {
   }
 });
 
+routes.get("/logout", (req, res, next) => {
+  try {
+    subscribe.emit("wsLogout", (message) => {
+      res.sendStatus(200);
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // routes.get("/chats", (req, res, next) => {
 //   try {
 //     subscribe.emit("wsGetChats", (message) => {
@@ -49,13 +67,5 @@ routes.get("/contacts", (req, res, next) => {
 //     next(error);
 //   }
 // });
-
-routes.get("/isauthenticated", (req, res, next) => {
-  if (configWs.isAuthenticated) {
-    res.sendStatus(200);
-  } else {
-    res.sendStatus(401);
-  }
-});
 
 module.exports = routes;
